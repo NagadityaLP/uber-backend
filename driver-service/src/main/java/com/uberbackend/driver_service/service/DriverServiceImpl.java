@@ -4,8 +4,11 @@ import com.uberbackend.driver_service.client.UserServiceClient;
 import com.uberbackend.driver_service.dto.CreateDriverRequest;
 import com.uberbackend.driver_service.dto.DriverResponse;
 import com.uberbackend.driver_service.dto.UpdateDriverRequest;
+import com.uberbackend.driver_service.dto.UpdateDriverStatusRequest;
 import com.uberbackend.driver_service.entity.Driver;
+import com.uberbackend.driver_service.entity.DriverStatus;
 import com.uberbackend.driver_service.exception.DriverNotFoundException;
+import com.uberbackend.driver_service.exception.InvalidDriverStatusTransitionException;
 import com.uberbackend.driver_service.exception.UserNotFoundException;
 import com.uberbackend.driver_service.repository.DriverRepository;
 import org.springframework.stereotype.Service;
@@ -104,6 +107,38 @@ public class DriverServiceImpl implements DriverService {
                         ));
 
         driverRepository.delete(driver);
+    }
+
+    @Override
+    public DriverResponse updateDriverStatus(Long id, UpdateDriverStatusRequest request) {
+
+        Driver driver = driverRepository.findById(id)
+                .orElseThrow(() ->
+                        new DriverNotFoundException("Driver not found with id: " + id));
+
+        DriverStatus currentStatus = driver.getStatus();
+        DriverStatus newStatus = request.getStatus();
+
+        if (!isValidStatusTransition(currentStatus, newStatus)) {
+            throw new InvalidDriverStatusTransitionException("Invalid status transition from " + currentStatus + " to " + newStatus);
+        }
+
+        driver.setStatus(newStatus);
+
+        Driver updatedDriver = driverRepository.save(driver);
+
+        return mapToResponse(updatedDriver);
+    }
+
+    private boolean isValidStatusTransition(DriverStatus currentStatus, DriverStatus newStatus) {
+        return switch (currentStatus) {
+            case OFFLINE ->
+                    newStatus == DriverStatus.AVAILABLE;
+            case AVAILABLE ->
+                    newStatus == DriverStatus.ON_TRIP || newStatus == DriverStatus.OFFLINE;
+            case ON_TRIP ->
+                    newStatus == DriverStatus.AVAILABLE;
+        };
     }
 
     private DriverResponse mapToResponse(Driver driver) {

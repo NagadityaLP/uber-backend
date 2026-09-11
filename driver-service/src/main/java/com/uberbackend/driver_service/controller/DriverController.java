@@ -3,6 +3,7 @@ package com.uberbackend.driver_service.controller;
 import com.uberbackend.driver_service.dto.CreateDriverRequest;
 import com.uberbackend.driver_service.dto.UpdateDriverRequest;
 import com.uberbackend.driver_service.dto.DriverResponse;
+import com.uberbackend.driver_service.dto.UpdateDriverStatusRequest;
 import com.uberbackend.driver_service.service.DriverService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,12 @@ public class DriverController {
     @PutMapping("/{id}")
     public ResponseEntity<DriverResponse> updateDriver( @PathVariable Long id, @Valid @RequestBody UpdateDriverRequest request) {
         DriverResponse response = driverService.updateDriver(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<DriverResponse> updateDriverStatus(@PathVariable Long id, @Valid @RequestBody UpdateDriverStatusRequest request) {
+        DriverResponse response = driverService.updateDriverStatus(id, request);
         return ResponseEntity.ok(response);
     }
 
