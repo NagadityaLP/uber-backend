@@ -10,7 +10,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        format-sql: true
+        format_sql: true
 
 server:
   port: 8080

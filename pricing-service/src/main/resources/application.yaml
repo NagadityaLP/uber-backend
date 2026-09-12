@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5434/driver_db
+    url: jdbc:postgresql://localhost:5435/pricing_db
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -13,4 +13,4 @@ spring:
         format_sql: true
 
 server:
-  port: 8081
+  port: 8083
