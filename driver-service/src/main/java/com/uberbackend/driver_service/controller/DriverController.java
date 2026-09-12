@@ -43,6 +43,12 @@ public class DriverController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/available")
+    public ResponseEntity<List<Long>> findAvailableDrivers(@RequestParam List<Long> ids) {
+        List<Long> availableDriverIds = driverService.findAvailableDriverIds(ids);
+        return ResponseEntity.ok(availableDriverIds);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<DriverResponse> updateDriver( @PathVariable Long id, @Valid @RequestBody UpdateDriverRequest request) {
         DriverResponse response = driverService.updateDriver(id, request);

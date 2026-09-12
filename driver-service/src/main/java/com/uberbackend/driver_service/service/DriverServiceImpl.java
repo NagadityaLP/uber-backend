@@ -7,6 +7,7 @@ import com.uberbackend.driver_service.dto.UpdateDriverRequest;
 import com.uberbackend.driver_service.dto.UpdateDriverStatusRequest;
 import com.uberbackend.driver_service.entity.Driver;
 import com.uberbackend.driver_service.entity.DriverStatus;
+import com.uberbackend.driver_service.exception.DriverAlreadyExistsException;
 import com.uberbackend.driver_service.exception.DriverNotFoundException;
 import com.uberbackend.driver_service.exception.InvalidDriverStatusTransitionException;
 import com.uberbackend.driver_service.exception.UserNotFoundException;
@@ -34,6 +35,12 @@ public class DriverServiceImpl implements DriverService {
         if (!userServiceClient.userExists(request.getUserId())) {
             throw new UserNotFoundException(
                     "User not found with id: " + request.getUserId()
+            );
+        }
+
+        if (driverRepository.existsByUserId(request.getUserId())) {
+            throw new DriverAlreadyExistsException(
+                    "Driver already exists for user ID: " + request.getUserId()
             );
         }
 
@@ -128,6 +135,12 @@ public class DriverServiceImpl implements DriverService {
         Driver updatedDriver = driverRepository.save(driver);
 
         return mapToResponse(updatedDriver);
+    }
+
+    @Override
+    public List<Long> findAvailableDriverIds(List<Long> driverIds) {
+        return driverRepository.findByIdInAndStatus(driverIds, DriverStatus.AVAILABLE)
+                .stream().map(Driver::getId).toList();
     }
 
     private boolean isValidStatusTransition(DriverStatus currentStatus, DriverStatus newStatus) {

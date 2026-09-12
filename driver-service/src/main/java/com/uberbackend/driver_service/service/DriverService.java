@@ -19,5 +19,7 @@ public interface DriverService {
 
     DriverResponse updateDriverStatus(Long id, UpdateDriverStatusRequest request);
 
+    List<Long> findAvailableDriverIds(List<Long> driverIds);
+
     void deleteDriver(Long id);
 }
