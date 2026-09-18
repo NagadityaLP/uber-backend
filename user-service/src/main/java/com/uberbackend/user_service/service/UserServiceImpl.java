@@ -113,6 +113,11 @@ public class UserServiceImpl implements UserService {
         return users.map(this::mapToUserResponse);
     }
 
+    @Override
+    public boolean userExists(Long userId) {
+        return userRepository.existsById(userId);
+    }
+
     private UserResponse mapToUserResponse(User user) {
 
         UserResponse response = new UserResponse();

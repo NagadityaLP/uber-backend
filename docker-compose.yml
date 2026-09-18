@@ -41,7 +41,33 @@ services:
     volumes:
       - pricing_postgres_data:/var/lib/postgresql/data
 
+  trip-db:
+    image: 'postgres:16'
+    container_name: trip-service-postgres
+    environment:
+      - 'POSTGRES_DB=trip_db'
+      - 'POSTGRES_USER=postgres'
+      - 'POSTGRES_PASSWORD=root123'
+    ports:
+      - "5436:5432"
+    volumes:
+      - trip_postgres_data:/var/lib/postgresql/data
+
+  dispatch-db:
+    image: 'postgres:16'
+    container_name: dispatch-service-postgres
+    environment:
+      - 'POSTGRES_DB=dispatch_db'
+      - 'POSTGRES_USER=postgres'
+      - 'POSTGRES_PASSWORD=root123'
+    ports:
+      - "5437:5432"
+    volumes:
+      - dispatch_postgres_data:/var/lib/postgresql/data
+
 volumes:
   user_postgres_data:
   driver_postgres_data:
   pricing_postgres_data:
+  trip_postgres_data:
+  dispatch_postgres_data:

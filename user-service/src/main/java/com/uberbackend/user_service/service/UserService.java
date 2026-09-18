@@ -12,4 +12,5 @@ public interface UserService {
     UserResponse getUserById(Long id);
     void deleteUser(Long id);
     Page<UserResponse> getAllUsers(Pageable pageable);
+    boolean userExists(Long userId);
 }

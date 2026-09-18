@@ -79,4 +79,9 @@ public class UserController {
     public ResponseEntity<Page<UserResponse>> getAllUsers(@PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(userService.getAllUsers(pageable));
     }
+
+    @GetMapping("/{userId}/exists")
+    public ResponseEntity<Boolean> userExists(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.userExists(userId));
+    }
 }

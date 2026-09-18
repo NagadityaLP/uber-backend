@@ -1,0 +1,5 @@
+server:
+  port: 8085
+
+graphhopper:
+  api-key: ${GRAPHHOPPER_API_KEY}
