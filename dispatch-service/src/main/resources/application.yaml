@@ -1,6 +1,9 @@
 server:
   port: 8086
 
+dispatch:
+  search-radius-km: 5.0
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5437/dispatch_db
