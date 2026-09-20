@@ -12,5 +12,15 @@ spring:
       hibernate:
         format_sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      group-id: trip-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.value.default.type: com.uberbackend.trip_service.event.DriverAssignedEvent
+
 server:
   port: 8084

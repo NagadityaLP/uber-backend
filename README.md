@@ -421,3 +421,9 @@ Key areas of focus include:
 * Consistency
 * Event-driven architecture
 * Production-oriented backend design
+
+
+## Development Commands
+
+See [docs/commands.md](docs/commands.md) for Docker, Kafka, Maven,
+PostgreSQL, Redis, and other project commands.

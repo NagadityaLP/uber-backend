@@ -5,7 +5,9 @@ import com.uberbackend.dispatch_service.client.TripServiceClient;
 import com.uberbackend.dispatch_service.dto.*;
 import com.uberbackend.dispatch_service.entity.Assignment;
 import com.uberbackend.dispatch_service.entity.AssignmentStatus;
+import com.uberbackend.dispatch_service.event.DriverAssignedEvent;
 import com.uberbackend.dispatch_service.exception.NoNearestDriverAvailableException;
+import com.uberbackend.dispatch_service.kafka.TripEventProducer;
 import com.uberbackend.dispatch_service.repository.AssignmentRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,16 +21,19 @@ public class DispatchServiceImpl implements DispatchService {
     private final LocationServiceClient locationServiceClient;
     private final TripServiceClient tripServiceClient;
     private final AssignmentRepository assignmentRepository;
+    private final TripEventProducer tripEventProducer;
 
     @Value("${dispatch.search-radius-km}")
     private Double searchRadiusKm;
 
     public DispatchServiceImpl(LocationServiceClient locationServiceClient,
                                TripServiceClient tripServiceClient,
-                               AssignmentRepository assignmentRepository) {
+                               AssignmentRepository assignmentRepository,
+                               TripEventProducer tripEventProducer) {
         this.locationServiceClient = locationServiceClient;
         this.tripServiceClient = tripServiceClient;
         this.assignmentRepository = assignmentRepository;
+        this.tripEventProducer = tripEventProducer;
     }
 
     @Override
@@ -97,6 +102,14 @@ public class DispatchServiceImpl implements DispatchService {
         assignment.setAcceptedAt(LocalDateTime.now());
 
         Assignment savedAssignment = assignmentRepository.save(assignment);
+
+        DriverAssignedEvent event = new DriverAssignedEvent(
+                "DriverAssigned",
+                savedAssignment.getTripId(),
+                savedAssignment.getDriverId()
+        );
+
+        tripEventProducer.publishDriverAssigned(event);
 
         return new AssignmentResponse(
                 savedAssignment.getId(),
