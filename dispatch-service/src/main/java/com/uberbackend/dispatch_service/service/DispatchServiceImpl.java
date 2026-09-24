@@ -5,12 +5,17 @@ import com.uberbackend.dispatch_service.client.TripServiceClient;
 import com.uberbackend.dispatch_service.dto.*;
 import com.uberbackend.dispatch_service.entity.Assignment;
 import com.uberbackend.dispatch_service.entity.AssignmentStatus;
+import com.uberbackend.dispatch_service.entity.OutboxEvent;
 import com.uberbackend.dispatch_service.event.DriverAssignedEvent;
 import com.uberbackend.dispatch_service.exception.NoNearestDriverAvailableException;
 import com.uberbackend.dispatch_service.kafka.TripEventProducer;
 import com.uberbackend.dispatch_service.repository.AssignmentRepository;
+import com.uberbackend.dispatch_service.repository.OutboxEventRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +27,8 @@ public class DispatchServiceImpl implements DispatchService {
     private final TripServiceClient tripServiceClient;
     private final AssignmentRepository assignmentRepository;
     private final TripEventProducer tripEventProducer;
+    private final ObjectMapper objectMapper;
+    private final OutboxEventRepository outboxEventRepository;
 
     @Value("${dispatch.search-radius-km}")
     private Double searchRadiusKm;
@@ -29,11 +36,15 @@ public class DispatchServiceImpl implements DispatchService {
     public DispatchServiceImpl(LocationServiceClient locationServiceClient,
                                TripServiceClient tripServiceClient,
                                AssignmentRepository assignmentRepository,
-                               TripEventProducer tripEventProducer) {
+                               OutboxEventRepository outboxEventRepository,
+                               TripEventProducer tripEventProducer,
+                               ObjectMapper objectMapper) {
         this.locationServiceClient = locationServiceClient;
         this.tripServiceClient = tripServiceClient;
         this.assignmentRepository = assignmentRepository;
+        this.outboxEventRepository = outboxEventRepository;
         this.tripEventProducer = tripEventProducer;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -78,6 +89,7 @@ public class DispatchServiceImpl implements DispatchService {
         );
     }
 
+    @Transactional
     @Override
     public AssignmentResponse acceptAssignment(Long assignmentId, AssignmentActionRequest request) {
 
@@ -109,7 +121,22 @@ public class DispatchServiceImpl implements DispatchService {
                 savedAssignment.getDriverId()
         );
 
-        tripEventProducer.publishDriverAssigned(event);
+        String payload;
+
+        try {
+            payload = objectMapper.writeValueAsString(event);
+        } catch (JacksonException e) {
+            throw new RuntimeException("Failed to serialize DriverAssigned event", e);
+        }
+
+        OutboxEvent outboxEvent = new OutboxEvent();
+
+        outboxEvent.setEventType("DriverAssigned");
+        outboxEvent.setAggregateType("TRIP");
+        outboxEvent.setAggregateId(assignment.getTripId());
+        outboxEvent.setPayload(payload);
+
+        outboxEventRepository.save(outboxEvent);
 
         return new AssignmentResponse(
                 savedAssignment.getId(),
