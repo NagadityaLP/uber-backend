@@ -19,6 +19,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class DispatchServiceImpl implements DispatchService {
@@ -116,6 +117,7 @@ public class DispatchServiceImpl implements DispatchService {
         Assignment savedAssignment = assignmentRepository.save(assignment);
 
         DriverAssignedEvent event = new DriverAssignedEvent(
+                UUID.randomUUID(),
                 "DriverAssigned",
                 savedAssignment.getTripId(),
                 savedAssignment.getDriverId()
