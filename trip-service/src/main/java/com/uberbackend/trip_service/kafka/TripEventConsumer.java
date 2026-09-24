@@ -7,6 +7,7 @@ import com.uberbackend.trip_service.event.DriverAssignedEvent;
 import com.uberbackend.trip_service.repository.ProcessedEventRepository;
 import com.uberbackend.trip_service.repository.TripRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.annotation.BackOff;
@@ -29,7 +30,7 @@ public class TripEventConsumer {
     // with a backoff delay of 2000 milliseconds (2 seconds) between attempts.
     @Transactional //Atomic transaction
     @RetryableTopic(attempts = "3", backOff = @BackOff(delay = 2000))
-    @KafkaListener(topics = "trip-events")
+    @KafkaListener(topics = "trip-events", concurrency = "3")
     public void handleDriverAssigned(DriverAssignedEvent event) {
 
         // Durable Idempotency Mechanism
